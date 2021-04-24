@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 
 def parseRMS_IU(filename):
 
@@ -170,7 +171,7 @@ def parseFFT_Treon(filename):
                     elif commaCounter == 1:
                         fftAxis.append(currentValue)
                     elif commaCounter == 2:
-                        amplitudeArrays.append(currentValue.split(','))
+                        amplitudeArrays.append(np.array(currentValue.split(',')).astype(np.float))
                         frequencyArrays.append(list(range(0, len(amplitudeArrays[-1]))))
                 
 
