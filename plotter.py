@@ -60,8 +60,8 @@ def plotFFT_Treon(filename):
 
 
 # plotRMS_Treon("F:/Users/Lukas/Documents/Hackathon2021/Task 2 - Leadec - StarterKit/Treon/Time-series/")
-plotFFT_Treon("F:/Users/Lukas/Documents/Hackathon2021/Task 2 - Leadec - StarterKit/Treon/FFT/2_fft_140_2_nok.csv")
-
+#plotFFT_Treon("F:/Users/Lukas/Documents/Hackathon2021/Task 2 - Leadec - StarterKit/Treon/FFT/2_fft_140_2_nok.csv")
+plotFFT_Treon("2_fft_140_4_test.csv")
 
 
 
