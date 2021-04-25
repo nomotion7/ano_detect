@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 import data_parser as dataParser
-import plotter as plot
+#import plotter as plot
 import numpy as np
 from numpy import ndarray
 import pandas as pd
@@ -12,6 +12,10 @@ import sklearn.cluster
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
+from scipy.stats import iqr
+
+from sklearn.ensemble import IsolationForest
+
 #plot.plotFFT_Treon("2_fft_140_4_test.csv")
 
 
@@ -19,9 +23,64 @@ from sklearn.pipeline import make_pipeline
 
 #frequencyArrays[0]
 
-filename = "2_fft_140_2_nok.csv"
+filename = "2_fft_140_2_ok.csv"
 
 timestamps, fftAxis, frequencyArrays, amplitudeArrays = dataParser.parseFFT_Treon(filename)
+
+#save parsed values 
+#parsed = pd.DataFrame({'time': timestamps,'freq': frequencyArrays, 'amp': amplitudeArrays})
+
+#parsed.to_csv('parsed_2_fft_140_2_ok.csv', header = False)
+
+row = len(amplitudeArrays)-1
+col_numb_freq = len(frequencyArrays)
+#print(row,frequencyArrays[50])
+
+amp1 = np.zeros(row, dtype=float)
+amp2 = np.zeros(row, dtype=float)
+amp3 = np.zeros(row, dtype=float)
+amp4 = np.zeros(row, dtype=float)
+amp5 = np.zeros(row, dtype=float)
+pseudo_time = np.zeros(row, dtype=float)
+
+freq1 = 0 #hz
+freq2 = 1 #hz
+freq3 = 49 #hz
+freq4 = 50 #hz
+freq5 = 51 #hz 
+
+
+
+for it1 in range(0,row):
+    amp1[it1] = amplitudeArrays[it1][freq1]
+    amp2[it1] = amplitudeArrays[it1][freq2]
+    amp3[it1] = amplitudeArrays[it1][freq3]
+    amp4[it1] = amplitudeArrays[it1][freq4]
+    amp5[it1] = amplitudeArrays[it1][freq5]
+    pseudo_time[it1] = it1
+
+
+#plotting amplitude at 5 frequencies 
+
+""" plt.rcParams["figure.figsize"] = (20,15)
+
+plt.subplot(5, 1, 1)
+plt.plot(pseudo_time, amp1, label= "0 hz")
+
+plt.subplot(5, 1, 2)
+plt.plot(pseudo_time, amp2, label= "1 hz")
+
+plt.subplot(5, 1, 3)
+plt.plot(pseudo_time, amp3, label= "49 hz")
+
+plt.subplot(5, 1, 4)
+plt.plot(pseudo_time, amp4, label= "50 hz")
+
+plt.subplot(5, 1, 5)
+plt.plot(pseudo_time, amp5, label= "51 hz")
+
+#plt.plot(pseudo_time, amp1, label="Freq 50")
+plt.show() """
 
 
 """ print( amplitudeArrays[0][:] )
@@ -42,31 +101,21 @@ print ( len(amplitudeArrays[0]) , null_count)
 
 print (percentile) """
 
-#from scipy.stats import iqr
 
 
 
-#df_nok = pd.read_csv(r'C:\Users\Victor\Desktop\ipt\ano_detect_repo\ano_detect\2_fft_140_4_test.csv')
-#print(df_nok)
-
-#df2 = pd.DataFrame({'freq': frequencyArrays, 'amp': amplitudeArrays})
-#print(amplitudeArrays[:][50])
-df2 = pd.DataFrame({'amp1' : amplitudeArrays[50][:], 'amp2' : amplitudeArrays[:][0]})
-
-plt.rcParams["figure.figsize"] = (20,10)
 
 
-plt.subplot(4, 1, 1)
-plt.plot(timestamps, amplitudeArrays[50][:], label="Freq 50")
-
-""" plt.subplot(4, 1, 2)
-plt.plot(timestamps, amplitudeArrays[0][:], label="Freq 0")
-plt.show() """
 
 
-#amplitudeArrays.drop(['amp'], axis)
 
-""" 
+
+
+
+df2 = pd.DataFrame({'amp1' : amp1, 'amp2' : amp2})
+
+
+
 names= df2.columns
 x = df2[names]
 scaler = StandardScaler()
@@ -74,12 +123,12 @@ pca = PCA()
 pipeline = make_pipeline(scaler, pca)
 pipeline.fit(x)# Plot the principal components against their inertiafeatures = range(pca.n_components_)
 features = range(pca.n_components_)
-_ = plt.figure(figsize=(15, 5))
+""" _ = plt.figure(figsize=(15, 5))
 _ = plt.bar(features, pca.explained_variance_)
 _ = plt.xlabel('PCA feature')
 _ = plt.ylabel('Variance')
 _ = plt.xticks(features)
-_ = plt.title("Importance of the Principal Components based on inertia")
+_ = plt.title("Importance of the Principal Components based on inertia") """
 #plt.show()
 
 pca = PCA(n_components=2)
@@ -90,7 +139,33 @@ df2['pc1']= principalDf['pc1']
 df2['pc2']= principalDf['pc2']
 
 
-lower_bound = 0.005; 
+outliers_fraction = 0.001
+
+model =  IsolationForest(contamination=outliers_fraction)
+model.fit(principalDf.values) 
+principalDf['anomaly2'] = pd.Series(model.predict(principalDf.values))
+
+df2['anomaly2'] = pd.Series(principalDf['anomaly2'].values, index=df2.index)
+a = df2.loc[df2['anomaly2'] == -1] #anomaly
+_ = plt.figure(figsize=(18,6))
+_ = plt.plot(df2['amp1'], color='blue', label='Normal')
+_ = plt.plot(a['amp1'], linestyle='none', marker='X', color='red', markersize=12, label='Anomaly')
+_ = plt.xlabel('timesteps')
+_ = plt.ylabel('freq amplitude')
+_ = plt.title('freq anomalies detected with isolation forrest')
+_ = plt.legend(loc='best')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+""" lower_bound = 0.005; 
 upper_bound = 0.995; 
 
 # Calculate IQR for the 1st principal component (pc1)

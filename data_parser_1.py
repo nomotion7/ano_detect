@@ -62,34 +62,38 @@ def parseFFT_IU(filename):
         for i, c in enumerate(allChars):
 
 
-            if c == ',' and not inArray:
-                commaCounter += 1
-                currentValue = ""
-            elif c == '"':
-                inArray = not inArray
-            else:
-                currentValue += c
-            
-            # add elements to lists
-            if i < len(allChars)-1 and allChars[i+1] == ',' and not inArray or i == len(allChars)-1:
-                
-                if commaCounter == 0:
-                    monitorIds.append(currentValue)
-                elif commaCounter == 1:
-                    fftAxis.append(currentValue)
-                elif commaCounter == 2:
-                    timestaps.append(currentValue)
-                elif commaCounter == 3:
-                    frequencyArrays.append(currentValue.split(','))
-                elif commaCounter == 4:
-                    amplitudeArrays.append(currentValue.split(','))
-            
+            if c.isdigit() and not inArea:
+                inArea = True 
 
-            if commaCounter == 5:
-                commaCounter = 0
+            if inArea:
+                # separate elements
+                if c == ',' and not inArray:
+                    commaCounter += 1
+                    currentValue = ""
+                elif c == '"':
+                    inArray = not inArray
+                else:
+                    currentValue += c
             
-            if len(monitorIds) == 10:
-                break
+                # add elements to lists
+                if i < len(allChars)-1 and allChars[i+1] == ',' and not inArray or i == len(allChars)-1:
+                    
+                    if commaCounter == 0:
+                        monitorIds.append(currentValue)
+                    elif commaCounter == 1:
+                        fftAxis.append(currentValue)
+                    elif commaCounter == 2:
+                        timestaps.append(currentValue)
+                    elif commaCounter == 3:
+                        frequencyArrays.append(currentValue.split(','))
+                    elif commaCounter == 4:
+                        amplitudeArrays.append(currentValue.split(','))
+                
+
+                if commaCounter == 5:
+                    commaCounter = 0
+                
+                
 
     return monitorIds, fftAxis, timestaps, frequencyArrays, amplitudeArrays
 
